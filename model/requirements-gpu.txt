@@ -1,0 +1,5 @@
+loguru~=0.7.2
+sentencepiece==0.2.0
+celery[redis]==5.4.0
+kombu==5.4.0rc2
+guidance==0.1.15
