@@ -12,6 +12,8 @@ model = Llama.from_pretrained(
     filename="*q4.gguf",
     verbose=False
 )
+g_model = LlamaCpp(model=model, echo=False)
+
 
 if __name__ == "__main__":
     classes = ["positive", "negative", "neutral"]
@@ -27,24 +29,24 @@ if __name__ == "__main__":
             # "* neutral: for neutral or no emotion. "
             # "Provide a rational or explanation.",
         },
-        {"role": "user", "content": "I liked the movie"},
-        {
-            "role": "assistant",
-            "content": "Rational: Lets think step by step, 'like' reflects a positive emotion so the answer is: "
-                       "positive",
-        },
-        {"role": "user", "content": "I hated the movie"},
-        {
-            "role": "assistant",
-            "content": "Rational: Lets think step by step, 'hate' reflects a negative emotion so the answer is: "
-                       "negative",
-        },
-        # {"role": "user", "content": "I watched the movie"},
+        # {"role": "user", "content": "I liked the movie"},
+        # {
+        #     "role": "assistant",
+        #     "content": "Rational: Lets think step by step, 'like' reflects a positive emotion so the answer is: "
+        #                "positive",
+        # },
+        # {"role": "user", "content": "I hated the movie"},
+        # {
+        #     "role": "assistant",
+        #     "content": "Rational: Lets think step by step, 'hate' reflects a negative emotion so the answer is: "
+        #                "negative",
+        # },
+        {"role": "user", "content": "I watched the movie"},
         # {
         #     "role": "assistant",
         #     "content": "Rational: Lets think step by step, no emotion was expressed so the answer is: neutral",
         # },
-        {"role": "user", "content": "This was not a fun experience"},
+        # {"role": "user", "content": "This was not a fun experience"},
         # {
         #     "role": "assistant",
         #     "content": "Rational: Lets think step by step, 'not a fun' reflects a negative emotion so the answer is: "
@@ -54,7 +56,6 @@ if __name__ == "__main__":
         #     "role": "assistant",
         #     "content": "Rational: Lets think step by step, no emotion was expressed so the answer is: neutral",
         # },
-        # {"role": "user", "content": "Sunny Coffee ☀️Get more positive energy with 🌼 Lofi Coffee ~ Lofi Hip Hop for relax/chill/study"},
         # {
         #     "role": "user",
         #     "content": "Sentence: This trip was the best experience of my life",
@@ -64,14 +65,13 @@ if __name__ == "__main__":
     start = time.time()
 
     outputs = model.create_chat_completion(
-      messages=messages
+      messages=messages,
+      max_tokens=120
     )
 
     print(outputs["choices"][0]["message"]["content"])
 
     print("base", time.time() - start)
-
-    g_model = LlamaCpp(model=model, echo=False)
 
     lm = g_model
 
