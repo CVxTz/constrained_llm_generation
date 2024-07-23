@@ -1,33 +1,24 @@
 import time
 
-import torch
+from llama_cpp import Llama
 from guidance import assistant, gen, role, select
-from guidance.chat import ChatMLTemplate
-from guidance.models import Transformers
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    GenerationConfig,
+from guidance.models import LlamaCpp
+
+checkpoint = "microsoft/Phi-3-mini-4k-instruct-gguf"
+
+model = Llama.from_pretrained(
+    repo_id=checkpoint,
+    n_gpu_layers=-1,
+    filename="*q4.gguf",
+    verbose=False
 )
-
-# checkpoint = "HuggingFaceTB/SmolLM-135M-Instruct"
-# checkpoint = "HuggingFaceTB/SmolLM-360M-Instruct"
-checkpoint = "HuggingFaceTB/SmolLM-1.7B-Instruct"
-
-device = (
-    "cuda" if torch.cuda.is_available() else "cpu"
-)  # for GPU usage or "cpu" for CPU usage
-
-tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-
-model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map=device)
 
 if __name__ == "__main__":
     classes = ["positive", "negative", "neutral"]
-    classes_ = " ".join(classes)
+    classes_ = ", ".join(classes)
     messages = [
         {
-            "role": "system",
+            "role": "user",
             "content": f"Your role is to classify the input sentence into {classes_} classes. "
                        f"Answer with one of {classes_} values."
             # "Respond with negative or positive or neutral "
@@ -53,18 +44,17 @@ if __name__ == "__main__":
         #     "role": "assistant",
         #     "content": "Rational: Lets think step by step, no emotion was expressed so the answer is: neutral",
         # },
-        # {"role": "user", "content": "This was not a fun experience"},
+        {"role": "user", "content": "This was not a fun experience"},
         # {
         #     "role": "assistant",
         #     "content": "Rational: Lets think step by step, 'not a fun' reflects a negative emotion so the answer is: "
         #                "negative",
         # },
-        # {"role": "user", "content": "I watched the movie"},
         # {
         #     "role": "assistant",
         #     "content": "Rational: Lets think step by step, no emotion was expressed so the answer is: neutral",
         # },
-        {"role": "user", "content": "Sentence: Sunny Coffee ☀️Get more positive energy with 🌼 Lofi Coffee ~ Lofi Hip Hop for relax/chill/study"},
+        # {"role": "user", "content": "Sunny Coffee ☀️Get more positive energy with 🌼 Lofi Coffee ~ Lofi Hip Hop for relax/chill/study"},
         # {
         #     "role": "user",
         #     "content": "Sentence: This trip was the best experience of my life",
@@ -72,22 +62,16 @@ if __name__ == "__main__":
     ]
 
     start = time.time()
-    input_text = tokenizer.apply_chat_template(messages, tokenize=False)
-    print(input_text)
-    inputs = tokenizer.encode(input_text, return_tensors="pt").to(device)
-    outputs = model.generate(
-        inputs,
-        max_new_tokens=100,
-        do_sample=False,
-        generation_config=GenerationConfig(use_cache=True),
+
+    outputs = model.create_chat_completion(
+      messages=messages
     )
-    print(tokenizer.decode(outputs[:, inputs.shape[1] :][0]))
+
+    print(outputs["choices"][0]["message"]["content"])
 
     print("base", time.time() - start)
 
-    g_model = Transformers(
-        model=model, tokenizer=tokenizer, echo=False, chat_template=ChatMLTemplate
-    )
+    g_model = LlamaCpp(model=model, echo=False)
 
     lm = g_model
 
