@@ -12,8 +12,6 @@ services:
             - driver: nvidia
               device_ids: ['0']
               capabilities: [gpu]
-    depends_on:
-      - redis
 
   app:
     build:
@@ -23,13 +21,9 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
     ports:
       - "8080:8080"
-    depends_on:
-      - redis
 
   flower:
     image: mher/flower:2.0.0
     command: ['celery', '--broker=${REDIS_URL:-redis://redis:6379/0}', 'flower']
     ports:
       - "5555:5555"
-    depends_on:
-      - redis
